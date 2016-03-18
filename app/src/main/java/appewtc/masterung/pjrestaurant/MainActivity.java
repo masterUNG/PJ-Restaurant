@@ -1,8 +1,22 @@
 package appewtc.masterung.pjrestaurant;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +37,101 @@ public class MainActivity extends AppCompatActivity {
         //Delete SQLite
         deleteSQLite();
 
+        //Synchronize JSON to SQLite
+        synJSONtoSQLite();
+
     }   // Main Method
+
+    private void synJSONtoSQLite() {
+
+        //Connected Http
+        StrictMode.ThreadPolicy threadPolicy = new StrictMode.ThreadPolicy
+                .Builder().permitAll().build();
+        StrictMode.setThreadPolicy(threadPolicy);
+
+        int intTimes = 0;
+        while (intTimes <=1) {
+
+            //1 Create InputStream
+            InputStream inputStream = null;
+            String[] urlStrings = {"http://swiftcodingthai.com/pj/php_get_user_master.php",
+                    "http://swiftcodingthai.com/pj/php_get_food_master.php"};
+
+            try {
+
+                HttpClient httpClient = new DefaultHttpClient();
+                HttpPost httpPost = new HttpPost(urlStrings[intTimes]);
+                HttpResponse httpResponse = httpClient.execute(httpPost);
+                HttpEntity httpEntity = httpResponse.getEntity();
+                inputStream = httpEntity.getContent();
+
+            } catch (Exception e) {
+                Log.d("pj", "InputStream ==> " + e.toString());
+            }
+
+            //2 Create JSON String
+            String strJSON = null;
+
+            try {
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                StringBuilder stringBuilder = new StringBuilder();
+                String strLine = null;
+
+                while ((strLine = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(strLine);
+                }
+                inputStream.close();
+                strJSON = stringBuilder.toString();
+
+            } catch (Exception e) {
+                Log.d("pj", "JSON String ==> " + e.toString());
+            }
+
+            //3 Update to SQLite
+            try {
+
+                JSONArray jsonArray = new JSONArray(strJSON);
+                for (int i = 0; i < jsonArray.length(); i++) {
+
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    switch (intTimes) {
+                        case 0:
+
+                            String strUser = jsonObject.getString(MyManage.column_User);
+                            String strPassword = jsonObject.getString(MyManage.column_Password);
+                            String strName = jsonObject.getString(MyManage.column_Name);
+                            String strAddress = jsonObject.getString(MyManage.column_Address);
+                            String strPhone = jsonObject.getString(MyManage.column_Phone);
+
+                            myManage.addUser(strUser, strPassword, strName, strAddress, strPhone);
+
+                            break;
+                        case 1:
+
+                            String strFoodSet = jsonObject.getString(MyManage.column_FoodSet);
+                            String strDescrip = jsonObject.getString(MyManage.column_Description);
+                            String strPrice = jsonObject.getString(MyManage.column_Price);
+                            String strURLicon = jsonObject.getString(MyManage.column_URLicon);
+                            String strURLimage = jsonObject.getString(MyManage.column_URLimage);
+
+                            myManage.addFood(strFoodSet, strDescrip, strPrice, strURLicon, strURLimage);
+
+                            break;
+                    }   // switch
+
+                }   // for
+
+            } catch (Exception e) {
+                Log.d("pj", "Update SQLite ==> " + e.toString());
+            }
+
+
+
+            intTimes += 1;
+        }   // while
+
+    }   // synJSON
 
     private void deleteSQLite() {
         SQLiteDatabase sqLiteDatabase = openOrCreateDatabase(MyOpenHelper.database_name,
