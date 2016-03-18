@@ -1,11 +1,13 @@
 package appewtc.masterung.pjrestaurant;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 
 /**
  * Created by masterUNG on 3/18/16 AD.
  */
-public class MyOpenHelper {
+public class MyOpenHelper extends SQLiteOpenHelper{
 
     //Explicit
     public static final String database_name = "PJ.db";
@@ -24,7 +26,7 @@ public class MyOpenHelper {
             "FoodSet text, " +
             "Description text, " +
             "Price text, " +
-            "URLicon text" +
+            "URLicon text, " +
             "URLimage text);";
 
     private static final String create_order_table = "create table orderTABLE (" +
@@ -39,6 +41,18 @@ public class MyOpenHelper {
 
 
     public MyOpenHelper(Context context) {
+        super(context, database_name, null, database_version);
     }   // Constructor
 
+    @Override
+    public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        sqLiteDatabase.execSQL(create_user_table);
+        sqLiteDatabase.execSQL(create_food_table);
+        sqLiteDatabase.execSQL(create_order_table);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+
+    }
 }   // Main Class
