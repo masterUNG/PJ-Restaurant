@@ -2,6 +2,7 @@ package appewtc.masterung.pjrestaurant;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 /**
@@ -44,6 +45,37 @@ public class MyManage {
         readSqLiteDatabase = myOpenHelper.getReadableDatabase();
 
     }   // Constructor
+
+    public String[] searchUser(String strUser) {
+
+        try {
+
+            String[] resultStrings = null;
+            Cursor cursor = readSqLiteDatabase.query(user_table,
+                    new String[] {column_id, column_User, column_Password,
+                            column_Name, column_Address, column_Phone},
+                    column_User + "=?",
+                    new String[]{String.valueOf(strUser)},
+                    null, null, null, null);
+
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    resultStrings = new String[cursor.getColumnCount()];
+                    for (int i = 0; i < cursor.getColumnCount(); i++) {
+                        resultStrings[i] = cursor.getString(i);
+                    }
+                }
+            }
+            cursor.close();
+            return resultStrings;
+
+        } catch (Exception e) {
+            return null;
+        }
+
+        //return new String[0];
+    }
+
 
     public long addOrder(String strDate,
                          String strNameOrder,
