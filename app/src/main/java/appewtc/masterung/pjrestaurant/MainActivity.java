@@ -1,5 +1,6 @@
 package appewtc.masterung.pjrestaurant;
 
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -77,6 +78,10 @@ public class MainActivity extends AppCompatActivity {
 
             if (passwordString.equals(resultStrings[2])) {
                 //Password True
+                Intent intent = new Intent(MainActivity.this, OrderActivity.class);
+                intent.putExtra("Result", resultStrings);
+                startActivity(intent);
+                finish();
 
             } else {
                 //Password False
